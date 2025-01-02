@@ -11,6 +11,10 @@
     "build": "tsc"
   },
   "keywords": [],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/clarion-app/clarion-app-generator.git"
+  },
   "author": "Tim Schwartz <tim@metaverse.systems>",
   "license": "MIT",
   "dependencies": {
