@@ -1,0 +1,24 @@
+{
+  "name": "clarion-app-generator",
+  "version": "1.0.0",
+  "description": "Generate Clarion boilerplate",
+  "main": "dist/index.js",
+  "bin": {
+    "clarion-app-generator": "dist/index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "Tim Schwartz <tim@metaverse.systems>",
+  "license": "MIT",
+  "dependencies": {
+    "inquirer": "^12.3.0",
+    "typescript": "^5.7.2"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^9.0.7",
+    "@types/node": "^22.10.3"
+  }
+}
