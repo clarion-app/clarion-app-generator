@@ -3,6 +3,7 @@
 import inquirer from 'inquirer';
 import * as fs from 'fs';
 import * as path from 'path';
+import { create } from 'domain';
 
 interface UserInput {
   userName: string;
@@ -11,19 +12,16 @@ interface UserInput {
 }
 
 async function main() {
-  console.log("Hi-diddly-ho, neighbor! Let's generate some Clarion boilerplate!");
-
-  // Step 1: Prompt the user
   const answers = await inquirer.prompt<UserInput>([
     {
       type: 'input',
       name: 'userName',
-      message: 'Your name (e.g., Ned Flanders):'
+      message: 'Your name:'
     },
     {
       type: 'input',
       name: 'userEmail',
-      message: 'Your email address (e.g., flanders@springfield.org):'
+      message: 'Your email address:'
     },
     {
       type: 'input',
@@ -33,27 +31,17 @@ async function main() {
   ]);
 
   const { userName, userEmail, fullAppName } = answers;
-  // Remove the '@' => "organization-name/app-name"
   const trimmedAppName = fullAppName.replace(/^@/, '');
   const [organizationName, applicationName] = trimmedAppName.split('/');
   
-  // For references in code, we’ll create:
-  //   "test-app" -> "testAppApi"
   const camelAppApiName = toCamelCasePlusApi(applicationName); 
-  // For the file name, e.g. "testAppApi.ts"
   const apiFileName = `${camelAppApiName}.ts`; 
 
-  // For the service provider and composer usage,
-  //   "test-app" -> "TestApp"
   const pascalCaseAppName = toPascalCase(applicationName);
 
-  // Generate the base folder
   const baseDir = path.join(process.cwd(), applicationName);
   createDirIfNotExists(baseDir);
 
-  // ===========================
-  // manifest.json
-  // ===========================
   const manifestContent = {
     name: fullAppName,
     user: userName,
@@ -64,21 +52,18 @@ async function main() {
     JSON.stringify(manifestContent, null, 2)
   );
 
-  // ===========================
-  // BACKEND
-  // ===========================
   const backendDir = path.join(baseDir, `${applicationName}-backend`);
   createDirIfNotExists(backendDir);
 
   createDirIfNotExists(path.join(backendDir, 'database'));
   createDirIfNotExists(path.join(backendDir, 'database', 'migrations'));
+  createDirIfNotExists(path.join(backendDir, 'routes'));
 
   const backendSrcDir = path.join(backendDir, 'src');
   createDirIfNotExists(backendSrcDir);
   createDirIfNotExists(path.join(backendSrcDir, 'Controllers'));
   createDirIfNotExists(path.join(backendSrcDir, 'Models'));
 
-  // ServiceProvider
   const serviceProviderPath = path.join(
     backendSrcDir,
     `${pascalCaseAppName}ServiceProvider.php`
@@ -99,7 +84,7 @@ class ${pascalCaseAppName}ServiceProvider extends ClarionPackageServiceProvider
 
         if(!\$this->app->routesAreCached())
         {
-            require __DIR__.'/Routes.php';
+            require __DIR__.'/../routes/api.php';
         }
     }
 
@@ -111,7 +96,7 @@ class ${pascalCaseAppName}ServiceProvider extends ClarionPackageServiceProvider
 `;
   writeFileWithLog(serviceProviderPath, serviceProviderContent);
 
-  // Routes.php
+  // routes/api.php
   const routesPhp = `<?php
 
 use Illuminate\\Support\\Facades\\Route;
@@ -120,9 +105,8 @@ Route::group(['middleware'=>['auth:api'], 'prefix'=>\$this->routePrefix ], funct
 
 });
 `;
-  writeFileWithLog(path.join(backendSrcDir, 'Routes.php'), routesPhp);
+  writeFileWithLog(path.join(backendDir, 'routes/api.php'), routesPhp);
 
-  // composer.json
   const composerJson = {
     name: `${organizationName}/${applicationName}-backend`,
     description: "Describe your package",
@@ -161,7 +145,6 @@ Route::group(['middleware'=>['auth:api'], 'prefix'=>\$this->routePrefix ], funct
     JSON.stringify(composerJson, null, 2)
   );
 
-  // README
   writeFileWithLog(
     path.join(backendDir, 'README.md'),
     `# ${applicationName}-backend\n\nDescribe your ${fullAppName} backend.`
@@ -264,14 +247,12 @@ import { ${camelAppApiName} } from "./${camelAppApiName}";
 import { Message } from "./Message";
 import { Messages } from "./Messages";
 
-export const backend: BackendType = { url: "http://localhost:8000", token: "" };
+export const backend: BackendType = { url: "http://localhost:8000", token: "", user: { id: "", name: "", email: ""} };
 
-export const setFrontendToken = (token: string) => {
-    backend.token = token;
-};
-
-export const initializeFrontend = (setBackendUrl: string) => {
-    backend.url = setBackendUrl;
+export const updateFrontend = (config: BackendType) => {
+    backend.url = config.url;
+    backend.token = config.token;
+    backend.user = config.user;
 };
 
 export {
