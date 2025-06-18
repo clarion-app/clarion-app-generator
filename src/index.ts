@@ -171,7 +171,7 @@ Route::group(['middleware'=>['auth:api'], 'prefix'=>\$this->routePrefix ], funct
     author: `${userName} <${userEmail}>`,
     license: "MIT",
     dependencies: {
-      "@clarion-app/types": "^1.0.3",
+      "@clarion-app/types": "^1.6.0",
       "@reduxjs/toolkit": "^1.9.5",
       "react": "^18.2.0",
       "react-dom": "^18.2.0",
